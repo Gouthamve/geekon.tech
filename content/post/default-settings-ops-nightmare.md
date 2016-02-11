@@ -5,6 +5,8 @@ title = "Default Settings: An Ops Nightmare"
 banner = "/img/posts/redisallsafe.png"
 slug = "default-settings-ops-nightmare"
 
+socialsharing = true
+
 author = "Goutham"
 authortwitter = "https://twitter.com/putadent"
 

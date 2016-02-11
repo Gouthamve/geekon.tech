@@ -1,6 +1,7 @@
 baseurl = "https://geekon.tech/"
 languageCode = "en-us"
 title = "GeekOn"
+disqusShortname = "geekontech"
 
 [params]
     sidebartitle = "GeekOn"
