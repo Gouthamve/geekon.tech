@@ -42,7 +42,7 @@ p a {
 }
 h1 {
 	font-family: 'Libre Baskerville', serif;
-	font-weight: 700; 
+	font-weight: 700;
 }
 .center {
 	text-align: center;
@@ -468,17 +468,17 @@ hr.thin {
         text-align: right;
     }
 
-    .header .sidebarphoto{
-	    width:160px;
-	    height:160px;
-	    border-radius: 50%;
-	    -moz-border-radius: 50%;
-	    -webkit-border-radius: 50%;
-	}
-
     .sidebar {
         position: fixed;
         top: 0;
         bottom: 0;
     }
+}
+
+.header .sidebarphoto{
+  width:160px;
+  height:160px;
+  border-radius: 50%;
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
 }
