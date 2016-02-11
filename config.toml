@@ -1,0 +1,12 @@
+baseurl = "https://geekon.tech/"
+languageCode = "en-us"
+title = "GeekOn"
+
+[params]
+    sidebartitle = "GeekOn"
+    sidebartagline = "A collection of fairly technical experiences."
+    sidebarphoto = "/img/yes-we-code.jpg"
+
+[[menu.main]]
+    name = "Blog"
+    url = "/post"
