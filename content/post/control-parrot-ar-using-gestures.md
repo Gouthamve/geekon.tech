@@ -1,6 +1,6 @@
 +++
 date = "2016-02-11T23:13:17+05:30"
-draft = true
+draft = false
 title = "Controlling the Parrot AR using Gestures"
 slug = "controlling-parrot-drone-using-gestures"
 
