@@ -7,6 +7,8 @@ tags:
   - microservices
 ---
 
+###### Originally posted at [Sanyam Kapoor's DevBlog](http://bit.ly/dvomssyt)
+
 ***Microservices*** have suddenly become the hip thing to do. While
 it would be imbecile to question the potential of microservices,
 what I am surprised at why wasn't it popular enough pre-2014. While
