@@ -16,10 +16,10 @@ categories = ["golang", "compiler"]
 
 # The GoLang Compiler
 
-This was an assignment for my compilers course. I could find no documentation on the Go Compiler that I decided to publish my report here. Please comment if you find any discrepancies. 
+This was a Mini-assignment in my Compilers course at IIT Hyderabad to read existing implementations of lexers/parsers. I couldn't find any documentation on the Go Compiler hence, I decided to publish my report here. Please comment if you find any discrepancies.
 
 ## Some History
-Go's compiler has a unique history. When the team first built Go, they used lex and bison for the lexer and parser. This was due to several reasons:
+Go's compiler has a unique history. When the team first built Go, they used lex and bison for lexing and parsing. This was due to several reasons:
 
 1. Go was unstable.
 2. Go wasn't targeting compiler writers (Apparently, if you trying to bootstrap a language in the initial stages, the launguage will end up suitable for writing compilers! :P)
@@ -41,12 +41,12 @@ Go is a simple language. The grammar and spec can be found [Here](https://golang
 The lexer itself is a golang package whose documentation and public API can be found [here](https://golang.org/pkg/go/scanner/). Like most hand-written lexers it is made up of a [huuuge switch case](https://github.com/golang/go/blob/master/src/go/scanner/scanner.go#L598-L761).
 
 
-You initialise the scanner on a ```[]byte``` and constantly call the ```Scan``` method. The Scanner struct has the current state and the methods defined on it are used to capture the tokens. For those tokens which take more than one look ahead, [these](https://github.com/golang/go/blob/master/src/go/scanner/scanner.go#L531-L565) functions are used to select tokens based on context.
+You initialise the scanner on a ```[]byte``` (which is all the text) and constantly call the ```Scan``` method. The Scanner struct has the current state and the methods defined on it are used to capture the tokens. For those tokens which take more than one look ahead, [these](https://github.com/golang/go/blob/master/src/go/scanner/scanner.go#L531-L565) functions are used to select tokens based on context.
 
 ## The Parser
-One very frustrating aspect of the golang is the lack of documentation. We have to go through the code to understand what is happening and doing that for something as complex as a compiler ~~sucked~~ was tedious in the beginning but was acutally fun once you figure out whats happening.
+One very frustrating aspect of the golang is the lack of documentation. We have to go through the code to understand what is happening. Doing that for something as complex as a compiler ~~sucked~~ was tedious in the beginning but was acutally fun once I figured out whats happening.
 
-So I am going to dump the code here as I wade through the parser, so if I dont clean it up, please be ready for a lot of code.
+So I am going to dump the code here as I wade through the parser, so if I don't clean it up, please be ready for a lot of code.
 ### Parser Struct
 
 ```
@@ -104,7 +104,7 @@ So here the parser contains different fields, with the key fields being:
 6. Lookahead Token (Only one?)
 7. The literal for the current token
 8. Some error recovery token/stuff? `syncPos`
-9. Some non-syntactic parser control. `exprLev`
+9. Some non-syntactic parser control? `exprLev`
 10. Scope info (packages, unresolved identifiers)
 11. Additional scope info to support labels.
 
@@ -141,7 +141,19 @@ ParameterList  = ParameterDecl { "," ParameterDecl } .
 ParameterDecl  = [ IdentifierList ] [ "..." ] Type .
 ```
 
-One interesting problem here is that parameter parsing requires arbitrary look ahead as we can do:
+The following is valid go:
+```
+func()
+func(x int) int
+func(a, _ int, z float32) bool
+func(a, b int, z float32) (bool)
+func(prefix string, values ...int)
+func(a, b int, z float64, opt ...interface{}) (success bool)
+func(int, int, float64) (float64, *[]int)
+func(n int) func(p *T)
+```
+
+One interesting problem here is that parameter parsing requires arbitrary look ahead as we can do the following where we dont know if _string_ refers to a variable named string or a type string:
 
 ```
 func(string, a, b, c, d, e int, z float32) (bool)
@@ -163,7 +175,7 @@ TypeName  = identifier | QualifiedIdent .
 TypeLit   = ArrayType | StructType | PointerType | FunctionType | InterfaceType | SliceType | MapType | ChannelType .
 ```
 
-Even we simply look at one token and then move into parsing that:
+Even here, we simply look at one token and then move into parsing that:
 
 ```
 func (p *parser) tryIdentOrType() ast.Expr {
@@ -281,6 +293,4 @@ Go has a new SSA backend that shipped very recently (v1.7 came last month! Read 
 
 And backend specific code can be found in `src/cmd/compile/internal`. 
 
-
-
-
+_PS: I am pretty sure the assignment's motives were fulfilled!_
