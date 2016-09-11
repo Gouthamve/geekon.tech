@@ -34,7 +34,7 @@ While the reasons may sound silly, they are true. After moving from C to Go, the
 They built tools that automatically converted C to valid Go and then started cleaning up to make the code idiomatic Go.
 
 ## The Structure
-Go is a simple language. The grammar and spec can be found [Here](https://golang.org/ref/spec). Its so simple that the whole lexer is just 550 LOC. Go also has its parser written in Go, which amounts to 1800 LOC.
+Go is a simple language. The grammar and spec can be found [here](https://golang.org/ref/spec). Its so simple that the whole lexer is just 550 LOC. Go also has its parser written in Go, which amounts to 1800 LOC.
 
 ## The Lexer
 
@@ -44,7 +44,7 @@ The lexer itself is a golang package whose documentation and public API can be f
 You initialise the scanner on a ```[]byte``` (which is all the text) and constantly call the ```Scan``` method. The Scanner struct has the current state and the methods defined on it are used to capture the tokens. For those tokens which take more than one look ahead, [these](https://github.com/golang/go/blob/master/src/go/scanner/scanner.go#L531-L565) functions are used to select tokens based on context.
 
 ## The Parser
-One very frustrating aspect of the golang is the lack of documentation. We have to go through the code to understand what is happening. Doing that for something as complex as a compiler ~~sucked~~ was tedious in the beginning but was acutally fun once I figured out whats happening.
+One very frustrating aspect of the golang compiler is the lack of documentation. We have to go through the code to understand what is happening. Doing that for something as complex as a compiler ~~sucked~~ was tedious in the beginning but was acutally fun once I figured out whats happening.
 
 So I am going to dump the code here as I wade through the parser, so if I don't clean it up, please be ready for a lot of code.
 ### Parser Struct
@@ -111,7 +111,7 @@ So here the parser contains different fields, with the key fields being:
 
 Now, the parser is `init`ed where it sets the base fields and consumes the lead/line token at the top. (This is usually the package licensing/documentation comment. [Example](https://golang.org/src/fmt/doc.go)).
 
-Now, We parse a file via the [`ParseFile` function](https://github.com/golang/go/blob/master/src/go/parser/interface.go#L84-L124). This is just the API function which initializes the parser and calls the internal `parseFile` function. It parses:
+Now, we parse a file via the [`ParseFile` function](https://github.com/golang/go/blob/master/src/go/parser/interface.go#L84-L124). This is just the API function which initializes the parser and calls the internal `parseFile` function. It parses:
 
 SourceFile = [PackageClause](https://github.com/golang/go/blob/master/src/go/parser/parser.go#L2461-L2468) ";" { [ImportDecl](https://github.com/golang/go/blob/master/src/go/parser/parser.go#L2481-L2483) ";" } { [TopLevelDecl](https://github.com/golang/go/blob/master/src/go/parser/parser.go#L2487-L2489) ";" } .
 
@@ -153,7 +153,7 @@ func(int, int, float64) (float64, *[]int)
 func(n int) func(p *T)
 ```
 
-One interesting problem here is that parameter parsing requires arbitrary look ahead as we can do the following where we dont know if _string_ refers to a variable named string or a type string:
+One interesting problem here is that parameter parsing requires arbitrary lookahead as we can do the following where we dont know if _string_ refers to a variable named string or a type string:
 
 ```
 func(string, a, b, c, d, e int, z float32) (bool)
