@@ -1,7 +1,7 @@
 +++
 title = "TSDB: Bringing time-series into your app."
 draft = false
-date = "2017-05-28T20:31:02+05:30"
+date = "2017-05-29T20:31:02+05:30"
 
 slug = "tsdb-embeddable-timeseries-database"
 
@@ -25,7 +25,7 @@ It has a lot of things in it, but at the end, it says:
 
 > The code for the storage itself can be found in a [separate project](https://github.com/prometheus/tsdb). It's surprisingly agnostic to Prometheus itself and could be widely useful for a wider range of applications looking for an efficient local storage time series database.
 
-Yep, tsdb is a _Go package_, and _embeddable_ time-series database and you can use it in your applications. This blog post talks about the interface it provides.
+Yep, tsdb is a _Go package_, and an _embeddable_ time-series database and you can use it in your applications. This blog post talks about the interface it provides.
 
 # TSDB
 Before we dive into the interface, let us understand some terminology:
@@ -46,7 +46,7 @@ labels -> (t0, v0), (t1, v1), (t2, v2), (t3, v3), ....
 Now our data-model involves inserting data-points into several time-series and being able to query for different series and their datapoints.
 
 ## "Creating" the database
-So we store all the data in directory. We simply need to create an empty directory (tsdb directory) or choose an existing tsdb and need to call [`db.Open`](https://godoc.org/github.com/prometheus/tsdb#Open) on that directory.
+So we store all the data in directory. We simply need to create an empty directory (tsdb directory) or choose an existing tsdb dir and need to call [`db.Open`](https://godoc.org/github.com/prometheus/tsdb#Open) on that directory.
 ```
 db, err := tsdb.Open(path, nil, r, &tsdb.Options{
   WALFlushInterval:  10 * time.Second,
@@ -58,7 +58,7 @@ db, err := tsdb.Open(path, nil, r, &tsdb.Options{
 
 There are several parameters here and let us first understand the structure of the database before we go to the parameters.
 
-So the database is structured as `Blocks` of data which each block containing the data for a time-range. While this is no longer the exact structure for the data directory (it changed very recently), it represents how the data is organised:
+So the database is structured as `Blocks` of data with each block containing the data for a time-range. While this is no longer the exact structure for the data directory (it changed very recently), it represents how the data is organised:
 ```
 $ tree ./data
 ./data
@@ -86,11 +86,11 @@ $ tree ./data
         ├── 000002
         └── 000003
 ```
-So `block-00000{1,4,5}` contain data in non-overlapping intervals of time. Now whenever a new datapoint is ingested, it is written to WAL and then added to an in-memory (head-)block. Now after sometime, the data in memory is flushed to disk as another (persisted-) block like blocks 1, 4, 5. The smaller blocks are merged and compacted into larger blocks periodically.
+So `block-00000{1,4,5}` contain data in non-overlapping intervals of time. Now whenever a new datapoint is ingested, it is written to WAL and then added to an in-memory (head-)block (`block-000006`). Now after sometime, the data in memory is flushed to disk as another (persisted-) block like blocks 1, 4, 5. The smaller blocks are merged and compacted into larger blocks periodically.
 
 Now, if we go back to the parameters, 
 
-**WALFlushInterval** is the time we sync the WAL to disk. When we say persist to WAL, we don't actually write to disk for every single datapoint, but instead write to the OS buffers and `fsync` them every `WALFlushInterval`. This means if the interval is `10s`, then incase of a crash, we might lose upto `10s` of data. By setting it to `0`, we always persist but that comes at a performance cost.
+**WALFlushInterval** is the time we sync the WAL to disk. When we say persist to WAL, we don't actually write to disk for every single datapoint ingested, but instead write to the OS buffers and `fsync` them every `WALFlushInterval`. This means if the interval is `10s`, then incase of a crash, we might lose upto `10s` of data. By setting it to `0`, we always persist but that comes at a performance cost.
 
 **MinBlockDuration** is the duration after which we write a head-block is written out as a persisted block. After writing out an existing head-block, we just open another one.
 
@@ -117,7 +117,7 @@ So we created an `Appender` and appended and committed the new values. We can al
 
 Now that we inserted the data, lets read it back. This is where `tsdb` excels, by giving you a really powerful way to query time-series.
 
-We first need to specify the time-range over which we need the data and then we can use several `Matchers` to choose the series for which we want the data for. 
+We first need to specify the time-range over which we need the data and then we use several `Matchers` to choose the series for which we want the data for. 
 ```
 1  q := db.Querier(10, 1000)  // The data b/w t=0 to t=1000
 2  defer q.Close()  // To release locks.
@@ -175,7 +175,7 @@ ss := q.Select(eqm, labels.NewEqualMatcher("method", "Post"))
 ```
 
 **L5-21**: We are now going over the set of series and are extracting the series data (its labels and data-points). It is to be noted that the series are in sorted order of their labels.<br/>
-**L10-17**: We use the `SeriesIterator` interface to iterate over the data-points (which are sorted according to time, duh!).
+**L10-17**: We use the [`SeriesIterator`](https://godoc.org/github.com/prometheus/tsdb#SeriesIterator) interface to iterate over the data-points (which are sorted according to time, duh!).
 
 ## Deleting Data
 Now finally to my work! This was what I was working on for the past two weeks, to add an API to delete data.
