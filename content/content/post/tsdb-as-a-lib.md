@@ -58,35 +58,34 @@ db, err := tsdb.Open(path, nil, r, &tsdb.Options{
 
 There are several parameters here and let us first understand the structure of the database before we go to the parameters.
 
-So the database is structured as `Blocks` of data with each block containing the data for a time-range. While this is no longer the exact structure for the data directory (it changed very recently), it represents how the data is organised:
+So the database is structured as `Blocks` of data with each block containing the data for a time-range. While this is not the exact structure for the data directory, it represents how the data is organised:
 ```
-$ tree ./data
-./data
-├── b-000001
-│   ├── chunks
-│   │   ├── 000001
-│   │   ├── 000002
-│   │   └── 000003
-│   ├── index
-│   └── meta.json
-├── b-000004
+➜  prometheus git:(dev-2.0) tree data 
+data
+├── 01BH8A9V27EYAEVAV0FH92E27W
 │   ├── chunks
 │   │   └── 000001
 │   ├── index
-│   └── meta.json
-├── b-000005
+│   ├── meta.json
+│   └── tombstones
+├── 01BH8YX0M8XAGH0KBRZ7X61MF0
 │   ├── chunks
 │   │   └── 000001
 │   ├── index
-│   └── meta.json
-└── b-000006
-    ├── meta.json
-    └── wal
-        ├── 000001
-        ├── 000002
-        └── 000003
+│   ├── meta.json
+│   └── tombstones
+├── 01BH9KG6CZYBXVNHDQSTPXJD9X
+│   ├── chunks
+│   │   └── 000001
+│   ├── index
+│   ├── meta.json
+│   └── tombstones
+└── 01BH9KG6153Y4DE4ZMYE2FD2FD
+     ├── meta.json
+     └── wal
+        └── 000001
 ```
-So `block-00000{1,4,5}` contain data in non-overlapping intervals of time. Now whenever a new datapoint is ingested, it is written to WAL and then added to an in-memory (head-)block (`block-000006`). Now after sometime, the data in memory is flushed to disk as another (persisted-) block like blocks 1, 4, 5. The smaller blocks are merged and compacted into larger blocks periodically.
+So the blocks contains data in non-overlapping intervals of time. Now whenever a new datapoint is ingested, it is written to WAL and then added to an in-memory (head-)block (like `01BH9KG6153Y4DE4ZMYE2FD2FD`). Now after sometime, the data in memory is flushed to disk as another (persisted-) block like `01BH8YX0M8XAGH0KBRZ7X61MF0`. The smaller blocks are merged and compacted into larger blocks periodically.
 
 Now, if we go back to the parameters, 
 
@@ -99,14 +98,14 @@ Now, if we go back to the parameters,
 **RetentionDuration** We only store data until a certain period and we drop all data beyond the retention time. If we find that a block is beyond the retention-time, we just nuke it.
 
 ## Inserting Data
-Now that we know how to create or open a db, let us throw in some data. Instead of adding a single datapoint, we can add several at once in a "transaction".
+Now that we know how to create or open a DB, let us throw in some data. Instead of adding a single datapoint, we can add several at once in a "transaction".
 
 ```
 app := db.Appender()
-_, err = app.Add(labels.FromStrings("foo", "bar"), 0, 0)
-_, err = app.Add(labels.FromStrings("foo", "baz"), 0, 0)
-_, err = app.Add(labels.FromStrings("foo", "fifi"), 0, 0)
-_, err = app.Add(labels.Labels{{"a", "b"}}, 10, 0.5)
+_, err = app.Add(labels.FromStrings("foo", "bar"), 0, 0) // Handle the error when using it.
+app.Add(labels.FromStrings("foo", "baz"), 0, 0)
+app.Add(labels.FromStrings("foo", "fifi"), 0, 0)
+app.Add(labels.Labels{{"a", "b"}}, 10, 0.5)
 if err := app.Commit(); err != nil {
   // Handle error
 }
@@ -115,11 +114,11 @@ So we created an `Appender` and appended and committed the new values. We can al
 
 ## Querying Data
 
-Now that we inserted the data, lets read it back. This is where `tsdb` excels, by giving you a really powerful way to query time-series.
+Now that we inserted the data, let’s read it back. This is where `tsdb` excels, by giving you a really powerful way to query time-series.
 
 We first need to specify the time-range over which we need the data and then we use several `Matchers` to choose the series for which we want the data for. 
 ```
-1  q := db.Querier(10, 1000)  // The data b/w t=0 to t=1000
+1  q := db.Querier(10, 1000)  // The data b/w t=10 to t=1000
 2  defer q.Close()  // To release locks.
 3 
 4  seriesSet := q.Select(labels.NewEqualMatcher("a", "b"))
@@ -164,7 +163,7 @@ eqm := labels.NewEqualMatcher("path", "foo")
 ss := q.Select(eqm)
 
 // Select all metrics where path matches "foo.*" ({path=~"foo.*"})
-rem, _ := labels.NewRegexpMatcher("path", "foo.*") // Donot ignore error in your code :P.
+rem, _ := labels.NewRegexpMatcher("path", "foo.*") // Do not ignore error in your code :P.
 ss := q.Select(rem)
 
 // Select all metrics where path does not match "foo.*"
@@ -180,7 +179,7 @@ ss := q.Select(eqm, labels.NewEqualMatcher("method", "Post"))
 ## Deleting Data
 Now finally to my work! This was what I was working on for the past two weeks, to add an API to delete data.
 
-To delete all data b/w `ts=0 and ts=1000` in all series having labels `{path="foo", method="POST"}`, you simply do:
+To delete all data b/w `ts=10 and ts=1000` in all series having labels `{path="foo", method="POST"}`, you simply do:
 ```
 err := db.Delete(
   10, // mint
