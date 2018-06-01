@@ -1,0 +1,13 @@
+steps:
+  - name: jguyomard/hugo-builder
+    entrypoint: hugo
+    args: [
+      "-s",
+      "/workspace",
+      "--theme",
+      "ghostwriter"
+    ]
+
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: gsutil
+    args: ["-m", "rsync", "-r", "-c", "-d", "./public", "gs://geekon.tech"]
