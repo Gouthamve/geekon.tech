@@ -46,6 +46,16 @@ copyright = "My Name"
 googleAnalytics = "XXX"
 disqusShortname = "XXX"
 
+[Privacy]
+
+[Privacy.disqus]
+    disable = true
+
+[Privacy.googleAnalytics]
+    anonymizeIP = true
+    respectDoNotTrack = true
+    useSessionStorage = false
+
 [Author]
     name = "My Name"
     profile = "https://google.com/+XXX"
@@ -70,6 +80,8 @@ disqusShortname = "XXX"
     shareGooglePlus = true
     shareLinkedIn = false
     dateFormat = "Mon, Jan 2, 2006"
+    highlightJsUrl = ""
+    highlightJsLocalUrl = ""
 
 [Permalinks]
     post = "/:year/:month/:day/:filename/"
@@ -94,3 +106,6 @@ disqusShortname = "XXX"
     url = "/page/about/"
     weight = 4
 ```
+
+You can also inject arbitrary HTML into `<head>` simply by overriding the `extra-in-head.html`
+partial, which is meant for that purpose.
